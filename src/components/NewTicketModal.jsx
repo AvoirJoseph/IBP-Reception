@@ -6,29 +6,30 @@ import {
   Receipt, 
   User, 
   MagnifyingGlass,
-  WarningCircle
+  WarningCircle,
+  ChatsCircle
 } from '@phosphor-icons/react';
 
 export default function NewTicketModal({
   isOpen,
   onClose,
   onSaveTicket,
-  attorneys,
-  chapters,
-  options,
-  todayDailyCount
+  attorneys = [],
+  chapters = [],
+  options = {},
+  todayDailyCount = 0
 }) {
-  const [ticketType, setTicketType] = useState('ID_FOLLOWUP'); // or 'FINANCE'
+  const [ticketType, setTicketType] = useState('GENERAL'); // 'GENERAL', 'ID_FOLLOWUP', 'FINANCE'
   const [rollNo, setRollNo] = useState('');
   const [name, setName] = useState('');
   const [chapter, setChapter] = useState('Quezon City');
   const [channel, setChannel] = useState('VIBER');
-  const [subject, setSubject] = useState('Follow-up Courier');
-  const [concern, setConcern] = useState('SCANNED COPY OF SERVICE INVOICE');
-  const [solution, setSolution] = useState('Delivered');
+  const [category, setCategory] = useState('HELPDESK');
+  const [subject, setSubject] = useState('');
+  const [solution, setSolution] = useState('DONE');
   const [trackingNo, setTrackingNo] = useState('');
   const [notes, setNotes] = useState('');
-  const [paymentNotes, setPaymentNotes] = useState('');
+  const [status, setStatus] = useState('DONE');
 
   // Autocomplete state
   const [suggestions, setSuggestions] = useState([]);
@@ -37,17 +38,16 @@ export default function NewTicketModal({
 
   useEffect(() => {
     if (isOpen) {
-      // Reset defaults
       setRollNo('');
       setName('');
       setChapter('Quezon City');
       setChannel('VIBER');
-      setSubject('Follow-up Courier');
-      setConcern('SCANNED COPY OF SERVICE INVOICE');
-      setSolution(ticketType === 'ID_FOLLOWUP' ? 'Delivered' : 'SUGGESTED TO WAIT THE SOFT COPY SENT TO EMAIL');
+      setCategory('HELPDESK');
+      setSubject('');
+      setSolution('DONE');
       setTrackingNo('');
       setNotes('');
-      setPaymentNotes('');
+      setStatus('DONE');
       setSuggestions([]);
       setShowSuggestions(false);
 
@@ -103,25 +103,35 @@ export default function NewTicketModal({
 
     const todayStr = new Date().toISOString().split('T')[0];
     const newDailyNo = todayDailyCount + 1;
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+
+    let prefix = 'GEN-';
+    let sheetName = '2026';
+    if (ticketType === 'ID_FOLLOWUP') {
+      prefix = 'ID-';
+      sheetName = 'Follow-up (ID) 2026';
+    } else if (ticketType === 'FINANCE') {
+      prefix = 'FIN-';
+      sheetName = 'FINANCE 2026';
+    }
 
     const newTicket = {
-      id: ticketType === 'ID_FOLLOWUP' 
-        ? `ID-${Math.floor(1000 + Math.random() * 9000)}`
-        : `FIN-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `${prefix}${randomSuffix}`,
       type: ticketType,
+      sheetName,
       dailyNo: newDailyNo,
       date: todayStr,
       rollNo: rollNo.trim() || '-',
       name: name.trim().toUpperCase(),
       chapter: chapter,
-      channel: ticketType === 'FINANCE' ? channel : 'VIBER',
-      subject: ticketType === 'ID_FOLLOWUP' ? subject : null,
-      concern: ticketType === 'FINANCE' ? concern : null,
-      solution: solution,
+      channel: channel,
+      category: ticketType === 'GENERAL' ? category : (ticketType === 'ID_FOLLOWUP' ? 'ID' : 'FINANCE'),
+      subject: subject.trim() || (ticketType === 'ID_FOLLOWUP' ? 'Follow-up Courier' : 'Inquiry'),
+      concern: subject.trim(),
+      solution: solution.trim(),
       trackingNo: ticketType === 'ID_FOLLOWUP' ? trackingNo.trim() : '',
       notes: notes.trim(),
-      paymentNotes: paymentNotes.trim(),
-      resolved: 'DONE'
+      resolved: status === 'Delivered' || status === 'DONE' ? 'DONE' : 'PENDING'
     };
 
     onSaveTicket(newTicket);
@@ -134,7 +144,7 @@ export default function NewTicketModal({
         <div className="modal-header">
           <div className="modal-title">
             <IdentificationCard size={22} weight="bold" color="var(--gold-primary)" />
-            <span>Log New Lawyer Inquiry</span>
+            <span>Log New Reception Inquiry</span>
           </div>
           <button 
             type="button" 
@@ -148,33 +158,50 @@ export default function NewTicketModal({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-            {/* Category Switcher */}
+            {/* Sheet Category Switcher */}
             <div className="form-group">
-              <label className="form-label">Select Department / Inquiry Category</label>
+              <label className="form-label">Destination Sheet / Section</label>
               <div className="tab-group" style={{ width: '100%' }}>
+                <button
+                  type="button"
+                  style={{ flex: 1, justifyContent: 'center' }}
+                  className={`tab-btn ${ticketType === 'GENERAL' ? 'active' : ''}`}
+                  onClick={() => {
+                    setTicketType('GENERAL');
+                    setSubject('');
+                    setSolution('DONE');
+                  }}
+                >
+                  <ChatsCircle size={16} weight="regular" />
+                  <span>2026 (Inquiries)</span>
+                </button>
+
                 <button
                   type="button"
                   style={{ flex: 1, justifyContent: 'center' }}
                   className={`tab-btn ${ticketType === 'ID_FOLLOWUP' ? 'active' : ''}`}
                   onClick={() => {
                     setTicketType('ID_FOLLOWUP');
+                    setSubject('Follow-up Courier');
                     setSolution('Delivered');
                   }}
                 >
                   <IdentificationCard size={16} weight="regular" />
-                  <span>ID Dispatch & Courier</span>
+                  <span>Follow-up (ID)</span>
                 </button>
+
                 <button
                   type="button"
                   style={{ flex: 1, justifyContent: 'center' }}
                   className={`tab-btn ${ticketType === 'FINANCE' ? 'active' : ''}`}
                   onClick={() => {
                     setTicketType('FINANCE');
+                    setSubject('SCANNED COPY OF SERVICE INVOICE');
                     setSolution('SUGGESTED TO WAIT THE SOFT COPY SENT TO EMAIL');
                   }}
                 >
                   <Receipt size={16} weight="regular" />
-                  <span>Finance, Dues & Invoices</span>
+                  <span>FINANCE 2026</span>
                 </button>
               </div>
             </div>
@@ -202,13 +229,10 @@ export default function NewTicketModal({
                         className="suggestion-item"
                         onClick={() => selectAttorney(att)}
                       >
-                        <div>
-                          <span className="suggestion-roll">Roll #{att.rollNo}</span>
-                          <div style={{ fontWeight: 600, fontSize: '0.78rem' }}>{att.name}</div>
-                        </div>
-                        {att.chapter && (
-                          <span className="suggestion-chapter">{att.chapter}</span>
-                        )}
+                        <span style={{ fontWeight: 600 }}>{att.name}</span>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          Roll #{att.rollNo} {att.chapter ? `• ${att.chapter}` : ''}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -222,20 +246,19 @@ export default function NewTicketModal({
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="LAST NAME, FIRST NAME MIDDLE NAME"
+                  placeholder="e.g. DELA CRUZ, JUAN PEDRO"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value.toUpperCase())}
                   required
                 />
               </div>
             </div>
 
-            {/* Chapter & Channel */}
             <div className="form-grid-2">
               <div className="form-group">
-                <label className="form-label">IBP Chapter</label>
-                <select 
-                  className="form-select"
+                <label className="form-label">Chapter</label>
+                <select
+                  className="form-input"
                   value={chapter}
                   onChange={(e) => setChapter(e.target.value)}
                 >
@@ -245,146 +268,128 @@ export default function NewTicketModal({
                 </select>
               </div>
 
-              {ticketType === 'FINANCE' ? (
+              <div className="form-group">
+                <label className="form-label">Channel Received</label>
+                <select
+                  className="form-input"
+                  value={channel}
+                  onChange={(e) => setChannel(e.target.value)}
+                >
+                  <option value="VIBER">VIBER</option>
+                  <option value="LANDLINE">LANDLINE</option>
+                  <option value="EMAIL">EMAIL</option>
+                  <option value="HOTLINE">HOTLINE</option>
+                  <option value="TEXT">TEXT</option>
+                  <option value="WALK-IN">WALK-IN</option>
+                </select>
+              </div>
+            </div>
+
+            {ticketType === 'GENERAL' && (
+              <div className="form-group">
+                <label className="form-label">Department / Category</label>
+                <select
+                  className="form-input"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value="HELPDESK">HELPDESK</option>
+                  <option value="NCLA">NCLA (Legal Aid)</option>
+                  <option value="RECORDS">RECORDS</option>
+                  <option value="FINANCE">FINANCE</option>
+                  <option value="CBD">CBD</option>
+                  <option value="MCLE">MCLE</option>
+                  <option value="IT">IT</option>
+                  <option value="ACCOUNTING">ACCOUNTING</option>
+                </select>
+              </div>
+            )}
+
+            {/* Concern / Subject */}
+            <div className="form-group">
+              <label className="form-label">
+                Concern / Subject Matter <span style={{ color: 'var(--gold-primary)' }}>*</span>
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. FOLLOW-UP RENEWAL OF ID or SCANNED COPY OF SERVICE INVOICE"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Solution / Action Taken */}
+            <div className="form-group">
+              <label className="form-label">Solution / Action Taken</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Delivered or Transfer to NCLA Dept or Sent via Email"
+                value={solution}
+                onChange={(e) => setSolution(e.target.value)}
+              />
+            </div>
+
+            {/* Conditional ID Tracking fields */}
+            {ticketType === 'ID_FOLLOWUP' && (
+              <div className="form-grid-2">
                 <div className="form-group">
-                  <label className="form-label">Communication Channel</label>
-                  <select
-                    className="form-select"
-                    value={channel}
-                    onChange={(e) => setChannel(e.target.value)}
-                  >
-                    {options.financeChannels.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-              ) : (
-                <div className="form-group">
-                  <label className="form-label">LBC Tracking Number</label>
+                  <label className="form-label">LBC Tracking Number (12 digits)</label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="12-digit number e.g. 174305584683"
+                    placeholder="e.g. 174305584683"
                     value={trackingNo}
                     onChange={(e) => setTrackingNo(e.target.value)}
                   />
                 </div>
-              )}
-            </div>
-
-            {/* Dynamic Specifics for ID vs Finance */}
-            {ticketType === 'ID_FOLLOWUP' ? (
-              <>
-                <div className="form-grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Inquiry Subject / Action</label>
-                    <select
-                      className="form-select"
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                    >
-                      {options.idSubjects.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Dispatch Status / Solution</label>
-                    <select
-                      className="form-select"
-                      value={solution}
-                      onChange={(e) => setSolution(e.target.value)}
-                    >
-                      {options.idSolutions.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Courier Payment Note</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g. already paid the courier / done paid"
-                      value={paymentNotes}
-                      onChange={(e) => setPaymentNotes(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Reception Notes & Remarks</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g. Personally Claimed / Delivered to Guard"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="form-grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Financial Concern</label>
-                    <select
-                      className="form-select"
-                      value={concern}
-                      onChange={(e) => setConcern(e.target.value)}
-                    >
-                      {options.financeConcerns.map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Action / Solution Provided</label>
-                    <select
-                      className="form-select"
-                      value={solution}
-                      onChange={(e) => setSolution(e.target.value)}
-                    >
-                      {options.financeSolutions.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
 
                 <div className="form-group">
-                  <label className="form-label">Notes & Follow-up Details</label>
-                  <input
-                    type="text"
+                  <label className="form-label">Status</label>
+                  <select
                     className="form-input"
-                    placeholder="e.g. email sent 6.26.26 / LBC c/o Atty. Mendiola"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                  >
+                    <option value="Delivered">Delivered</option>
+                    <option value="Claimed (Pick-up)">Claimed (Pick-up)</option>
+                    <option value="For delivery">For delivery</option>
+                    <option value="To send tracking no.">To send tracking no.</option>
+                    <option value="PENDING">PENDING</option>
+                  </select>
                 </div>
-              </>
+              </div>
             )}
+
+            {/* Notes */}
+            <div className="form-group">
+              <label className="form-label">Internal Reception Notes</label>
+              <textarea
+                className="form-input"
+                rows="2"
+                placeholder="Additional instructions or notes..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              ></textarea>
+            </div>
           </div>
 
           <div className="modal-footer">
-            <button
-              type="button"
-              className="btn-secondary"
+            <button 
+              type="button" 
+              className="btn-secondary" 
               onClick={onClose}
             >
               Cancel
             </button>
-            <button
-              type="submit"
+            <button 
+              type="submit" 
               className="btn-primary"
             >
               <Check size={16} weight="bold" />
-              <span>Save & Log Ticket</span>
+              <span>Log to {ticketType === 'GENERAL' ? '2026' : ticketType === 'ID_FOLLOWUP' ? 'ID' : 'Finance'} Sheet</span>
             </button>
           </div>
         </form>
