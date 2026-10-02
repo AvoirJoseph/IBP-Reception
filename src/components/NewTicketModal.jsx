@@ -143,8 +143,8 @@ export default function NewTicketModal({
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">
-            <IdentificationCard size={22} weight="bold" color="var(--gold-primary)" />
-            <span>Log New Reception Inquiry</span>
+            <IdentificationCard size={20} weight="bold" color="var(--gold-primary)" />
+            <span>New Inquiry</span>
           </div>
           <button 
             type="button" 
@@ -152,7 +152,7 @@ export default function NewTicketModal({
             onClick={onClose}
             aria-label="Close modal"
           >
-            <X size={20} weight="regular" />
+            <X size={18} weight="regular" />
           </button>
         </div>
 
@@ -160,7 +160,7 @@ export default function NewTicketModal({
           <div className="modal-body">
             {/* Sheet Category Switcher */}
             <div className="form-group">
-              <label className="form-label">Destination Sheet / Section</label>
+              <label className="form-label">Category</label>
               <div className="tab-group" style={{ width: '100%' }}>
                 <button
                   type="button"
@@ -172,8 +172,8 @@ export default function NewTicketModal({
                     setSolution('DONE');
                   }}
                 >
-                  <ChatsCircle size={16} weight="regular" />
-                  <span>2026 (Inquiries)</span>
+                  <ChatsCircle size={15} weight="regular" />
+                  <span>General</span>
                 </button>
 
                 <button
@@ -186,8 +186,8 @@ export default function NewTicketModal({
                     setSolution('Delivered');
                   }}
                 >
-                  <IdentificationCard size={16} weight="regular" />
-                  <span>Follow-up (ID)</span>
+                  <IdentificationCard size={15} weight="regular" />
+                  <span>ID Courier</span>
                 </button>
 
                 <button
@@ -196,12 +196,12 @@ export default function NewTicketModal({
                   className={`tab-btn ${ticketType === 'FINANCE' ? 'active' : ''}`}
                   onClick={() => {
                     setTicketType('FINANCE');
-                    setSubject('SCANNED COPY OF SERVICE INVOICE');
-                    setSolution('SUGGESTED TO WAIT THE SOFT COPY SENT TO EMAIL');
+                    setSubject('Service Invoice Request');
+                    setSolution('Endorsed to Finance');
                   }}
                 >
-                  <Receipt size={16} weight="regular" />
-                  <span>FINANCE 2026</span>
+                  <Receipt size={15} weight="regular" />
+                  <span>Finance</span>
                 </button>
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function NewTicketModal({
             <div className="form-grid-2">
               <div className="form-group autocomplete-box">
                 <label className="form-label">
-                  Roll of Attorneys No. <span style={{ color: 'var(--gold-primary)' }}>*</span>
+                  Roll # <span style={{ color: 'var(--gold-primary)' }}>*</span>
                 </label>
                 <input
                   ref={rollInputRef}
@@ -241,12 +241,12 @@ export default function NewTicketModal({
 
               <div className="form-group">
                 <label className="form-label">
-                  Lawyer Full Name <span style={{ color: 'var(--gold-primary)' }}>*</span>
+                  Lawyer Name <span style={{ color: 'var(--gold-primary)' }}>*</span>
                 </label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. DELA CRUZ, JUAN PEDRO"
+                  placeholder="e.g. DELA CRUZ, JUAN"
                   value={name}
                   onChange={(e) => setName(e.target.value.toUpperCase())}
                   required

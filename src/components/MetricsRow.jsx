@@ -41,85 +41,90 @@ export default function MetricsRow({
       {/* 1. All Records */}
       <div 
         className={`metric-card ${activeTab === 'ALL' ? 'active-metric' : ''}`}
-        style={{ cursor: 'pointer' }}
         onClick={() => setActiveTab('ALL')}
+        title="View all records"
       >
         <div className="metric-info">
-          <span className="metric-label">All Active Records</span>
-          <span className="metric-value">{totalInquiries}</span>
-          <span className="metric-sub">Across all 2026 sheets</span>
+          <span className="metric-label">All Inquiries</span>
+          <div className="metric-val-row">
+            <span className="metric-value">{totalInquiries}</span>
+          </div>
         </div>
         <div className="metric-icon-box today">
-          <Clock size={20} weight="regular" />
+          <Clock size={18} weight="regular" />
         </div>
       </div>
 
-      {/* 2. 2026 General Inquiries */}
+      {/* 2. General */}
       <div 
         className={`metric-card ${activeTab === 'GENERAL' ? 'active-metric' : ''}`}
-        style={{ cursor: 'pointer' }}
         onClick={() => setActiveTab('GENERAL')}
+        title="View general inquiries"
       >
         <div className="metric-info">
-          <span className="metric-label">2026 Inquiries</span>
-          <span className="metric-value">{generalTickets.length}</span>
-          <span className="metric-sub">
-            <strong style={{ color: 'var(--status-delivered-text)' }}>{generalDoneCount}</strong> answered / resolved
-          </span>
+          <span className="metric-label">General</span>
+          <div className="metric-val-row">
+            <span className="metric-value">{generalTickets.length}</span>
+            <span className="metric-sub-pill success">{generalDoneCount} done</span>
+          </div>
         </div>
         <div className="metric-icon-box general">
-          <ChatsCircle size={20} weight="regular" />
+          <ChatsCircle size={18} weight="regular" />
         </div>
       </div>
 
       {/* 3. ID Follow-up */}
       <div 
         className={`metric-card ${activeTab === 'ID' ? 'active-metric' : ''}`}
-        style={{ cursor: 'pointer' }}
         onClick={() => setActiveTab('ID')}
+        title="View ID courier tracking"
       >
         <div className="metric-info">
-          <span className="metric-label">ID Courier Tracker</span>
-          <span className="metric-value">{idTickets.length}</span>
-          <span className="metric-sub">
-            <strong style={{ color: 'var(--status-delivered-text)' }}>{idDeliveredCount}</strong> delivered,{' '}
-            <strong style={{ color: 'var(--status-transit-text)' }}>{idTransitCount}</strong> in transit
-          </span>
+          <span className="metric-label">ID Courier</span>
+          <div className="metric-val-row">
+            <span className="metric-value">{idTickets.length}</span>
+            <span className="metric-sub-pill info">{idDeliveredCount} delivered</span>
+            {idTransitCount > 0 && (
+              <span className="metric-sub-pill warning">{idTransitCount} transit</span>
+            )}
+          </div>
         </div>
         <div className="metric-icon-box id">
-          <IdentificationCard size={20} weight="regular" />
+          <IdentificationCard size={18} weight="regular" />
         </div>
       </div>
 
       {/* 4. Finance & Receipts */}
       <div 
         className={`metric-card ${activeTab === 'FINANCE' ? 'active-metric' : ''}`}
-        style={{ cursor: 'pointer' }}
         onClick={() => setActiveTab('FINANCE')}
+        title="View finance & receipt records"
       >
         <div className="metric-info">
-          <span className="metric-label">Finance & Invoices</span>
-          <span className="metric-value">{finCount}</span>
-          <span className="metric-sub">Official receipt & fee inquiries</span>
+          <span className="metric-label">Finance</span>
+          <div className="metric-val-row">
+            <span className="metric-value">{finCount}</span>
+          </div>
         </div>
         <div className="metric-icon-box finance">
-          <Receipt size={20} weight="regular" />
+          <Receipt size={18} weight="regular" />
         </div>
       </div>
 
       {/* 5. Pick-Up */}
       <div 
         className={`metric-card ${activeTab === 'PICKUP' ? 'active-metric' : ''}`}
-        style={{ cursor: 'pointer' }}
         onClick={() => setActiveTab('PICKUP')}
+        title="View reception office pick-ups"
       >
         <div className="metric-info">
-          <span className="metric-label">Office Pick-Up</span>
-          <span className="metric-value">{idPickupCount}</span>
-          <span className="metric-sub">Claimed at 3rd Floor Reception</span>
+          <span className="metric-label">Office Pick-up</span>
+          <div className="metric-val-row">
+            <span className="metric-value">{idPickupCount}</span>
+          </div>
         </div>
         <div className="metric-icon-box transit">
-          <Handbag size={20} weight="regular" />
+          <Handbag size={18} weight="regular" />
         </div>
       </div>
     </div>

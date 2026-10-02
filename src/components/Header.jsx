@@ -55,26 +55,25 @@ export default function Header({
         {/* Brand */}
         <div className="brand-section">
           <div className="brand-crest">
-            <Scales size={24} weight="bold" />
+            <Scales size={20} weight="bold" />
           </div>
           <div className="brand-titles">
             <div className="brand-title">
-              IBP Helpdesk Tracker
+              IBP Helpdesk
               <span className="brand-tag">Reception</span>
             </div>
-            <span className="brand-subtitle">Integrated Bar of the Philippines — National Office</span>
           </div>
         </div>
 
         {/* Global Search */}
         <div className="header-search">
           <div className="search-input-wrapper">
-            <MagnifyingGlass size={18} weight="regular" className="search-icon" />
+            <MagnifyingGlass size={16} weight="regular" className="search-icon" />
             <input
               id="global-search-input"
               type="text"
               className="search-input"
-              placeholder="Search by Roll No, Lawyer Name, Chapter, or Tracking #..."
+              placeholder="Search by lawyer, roll #, chapter, tracking..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -84,44 +83,42 @@ export default function Header({
 
         {/* Actions & Utilities */}
         <div className="header-actions">
-          <div className="today-badge" title="Live status for today's intake queue">
+          <div className="today-badge" title="Inquiries logged today">
             <span className="today-dot"></span>
-            <span>{currentDateFormatted}</span>
-            <span style={{ opacity: 0.6 }}>|</span>
-            <strong>{todayCount} Inquiries Today</strong>
+            <span>{todayCount} Today</span>
           </div>
-
-          <button 
-            type="button" 
-            className="btn-secondary"
-            onClick={onExportExcel}
-            title="Export live records to official Excel file"
-          >
-            <FileArrowDown size={18} weight="regular" />
-            <span>Export Excel</span>
-          </button>
 
           <button
             type="button"
             className="theme-toggle-btn"
             onClick={toggleTheme}
             aria-label="Toggle visual theme"
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
           >
             {theme === 'dark' ? (
-              <Sun size={18} weight="regular" />
+              <Sun size={17} weight="regular" />
             ) : (
-              <Moon size={18} weight="regular" />
+              <Moon size={17} weight="regular" />
             )}
+          </button>
+
+          <button 
+            type="button" 
+            className="btn-secondary"
+            onClick={onExportExcel}
+            title="Export Excel"
+          >
+            <FileArrowDown size={16} weight="regular" />
+            <span>Export</span>
           </button>
 
           <button
             type="button"
             className="btn-primary"
             onClick={onOpenNewModal}
-            title="Log a new inquiry (Ctrl+N)"
+            title="New Inquiry (Ctrl+N)"
           >
-            <Plus size={18} weight="bold" />
+            <Plus size={16} weight="bold" />
             <span>New Inquiry</span>
           </button>
         </div>

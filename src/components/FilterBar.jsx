@@ -67,75 +67,63 @@ export default function FilterBar({
       {/* 1. Google Sheets Style Workbook Tabs */}
       <div className="sheets-tab-bar">
         <div className="sheets-tabs-list">
-          {/* 2026 General Inquiries */}
-          <button
-            type="button"
-            className={`sheet-tab-item tab-general ${activeTab === 'GENERAL' ? 'active' : ''}`}
-            onClick={() => setActiveTab('GENERAL')}
-            title="General receptionist intake log (2026 sheet)"
-          >
-            <span className="tab-indicator green"></span>
-            <span className="tab-title">2026 (Inquiries)</span>
-            <span className="tab-badge">{counts.general || 0}</span>
-          </button>
-
-          {/* Follow-up (ID) 2026 */}
-          <button
-            type="button"
-            className={`sheet-tab-item tab-id ${activeTab === 'ID' ? 'active' : ''}`}
-            onClick={() => setActiveTab('ID')}
-            title="ID dispatch and courier tracker"
-          >
-            <span className="tab-indicator blue"></span>
-            <span className="tab-title">Follow-up (ID) 2026</span>
-            <span className="tab-badge">{counts.id || 0}</span>
-          </button>
-
-          {/* FINANCE 2026 */}
-          <button
-            type="button"
-            className={`sheet-tab-item tab-finance ${activeTab === 'FINANCE' ? 'active' : ''}`}
-            onClick={() => setActiveTab('FINANCE')}
-            title="Finance, official receipts, and invoices"
-          >
-            <span className="tab-indicator purple"></span>
-            <span className="tab-title">FINANCE 2026</span>
-            <span className="tab-badge">{counts.finance || 0}</span>
-          </button>
-
-          {/* All Records Combined */}
+          {/* All */}
           <button
             type="button"
             className={`sheet-tab-item tab-all ${activeTab === 'ALL' ? 'active' : ''}`}
             onClick={() => setActiveTab('ALL')}
-            title="All 2026 records combined across all sheets"
           >
-            <span className="tab-indicator amber"></span>
-            <span className="tab-title">All Records</span>
+            <span className="tab-title">All</span>
             <span className="tab-badge">{counts.all || 0}</span>
           </button>
 
-          {/* Pick-Up Filter */}
+          {/* General Inquiries */}
+          <button
+            type="button"
+            className={`sheet-tab-item tab-general ${activeTab === 'GENERAL' ? 'active' : ''}`}
+            onClick={() => setActiveTab('GENERAL')}
+          >
+            <span className="tab-title">General</span>
+            <span className="tab-badge">{counts.general || 0}</span>
+          </button>
+
+          {/* ID Follow-up */}
+          <button
+            type="button"
+            className={`sheet-tab-item tab-id ${activeTab === 'ID' ? 'active' : ''}`}
+            onClick={() => setActiveTab('ID')}
+          >
+            <span className="tab-title">ID Courier</span>
+            <span className="tab-badge">{counts.id || 0}</span>
+          </button>
+
+          {/* Finance */}
+          <button
+            type="button"
+            className={`sheet-tab-item tab-finance ${activeTab === 'FINANCE' ? 'active' : ''}`}
+            onClick={() => setActiveTab('FINANCE')}
+          >
+            <span className="tab-title">Finance</span>
+            <span className="tab-badge">{counts.finance || 0}</span>
+          </button>
+
+          {/* Pick-Up */}
           <button
             type="button"
             className={`sheet-tab-item tab-pickup ${activeTab === 'PICKUP' ? 'active' : ''}`}
             onClick={() => setActiveTab('PICKUP')}
-            title="Claimed or queued for 3rd floor office pick-up"
           >
-            <span className="tab-indicator indigo"></span>
-            <span className="tab-title">Pick-Up Only</span>
+            <span className="tab-title">Pick-Up</span>
             <span className="tab-badge">{counts.pickup || 0}</span>
           </button>
 
-          {/* Today's Log */}
+          {/* Today */}
           <button
             type="button"
             className={`sheet-tab-item tab-today ${activeTab === 'TODAY' ? 'active' : ''}`}
             onClick={() => setActiveTab('TODAY')}
-            title="Entries for today"
           >
-            <span className="tab-indicator red"></span>
-            <span className="tab-title">Today's Log</span>
+            <span className="tab-title">Today</span>
             <span className="tab-badge">{counts.today || 0}</span>
           </button>
         </div>
@@ -153,20 +141,10 @@ export default function FilterBar({
             type="button"
             className="btn-sheet-tool"
             onClick={() => fileInputRef.current?.click()}
-            title="Upload/Sync updated HELPDESK Tracker.xlsx file"
+            title="Import Excel file"
           >
-            <FileArrowUp size={15} weight="regular" />
-            <span>Import Excel</span>
-          </button>
-
-          <button
-            type="button"
-            className="btn-sheet-tool export"
-            onClick={onExportExcel}
-            title="Export all sheets to official Excel .xlsx file"
-          >
-            <FileArrowDown size={15} weight="regular" />
-            <span>Export .xlsx</span>
+            <FileArrowUp size={14} weight="regular" />
+            <span>Import</span>
           </button>
         </div>
       </div>
@@ -174,11 +152,6 @@ export default function FilterBar({
       {/* 2. Google Sheets Toolbar (Filters, Column Manager, Density) */}
       <div className="sheets-toolbar">
         <div className="toolbar-left">
-          <div className="toolbar-label">
-            <Funnel size={14} weight="regular" />
-            <span>Filter:</span>
-          </div>
-
           {/* Status Filter */}
           <select
             className="toolbar-select"
@@ -187,11 +160,11 @@ export default function FilterBar({
             aria-label="Filter by Status"
           >
             <option value="ALL">All Statuses</option>
+            <option value="Done">Done</option>
             <option value="Delivered">Delivered</option>
-            <option value="Claimed (Pick-up)">Claimed (Pick-up)</option>
-            <option value="For delivery">For Delivery / In Transit</option>
-            <option value="DONE">DONE</option>
-            <option value="PENDING">PENDING</option>
+            <option value="Claimed">Claimed / Pick-up</option>
+            <option value="Transit">In Transit</option>
+            <option value="Pending">Pending</option>
           </select>
 
           {/* Channel Filter */}
@@ -230,8 +203,8 @@ export default function FilterBar({
               onClick={onResetFilters}
               title="Reset all filters"
             >
-              <ArrowClockwise size={13} weight="bold" />
-              <span>Clear Filters</span>
+              <ArrowClockwise size={12} weight="bold" />
+              <span>Clear</span>
             </button>
           )}
         </div>

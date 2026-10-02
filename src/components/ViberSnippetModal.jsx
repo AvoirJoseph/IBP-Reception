@@ -91,7 +91,7 @@ export default function ViberSnippetModal({
           </div>
 
           <div className="form-group">
-            <label className="form-label">Advisory Message Text (Ready to Paste):</label>
+            <label className="form-label">Advisory Message</label>
             <textarea
               className="form-textarea"
               rows={6}
@@ -100,10 +100,6 @@ export default function ViberSnippetModal({
               style={{ lineHeight: 1.6, fontSize: '0.86rem' }}
             />
           </div>
-
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-            Note: Formatted with professional institutional phrasing. Strictly free of informal symbols or emojis.
-          </span>
         </div>
 
         <div className="modal-footer">

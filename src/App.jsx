@@ -180,9 +180,19 @@ export default function App() {
 
     // 2. Status filter
     if (statusFilter !== 'ALL') {
+      const sf = statusFilter.toLowerCase();
       list = list.filter(t => {
-        const sol = (t.solution || t.resolved || '').toLowerCase();
-        return sol.includes(statusFilter.toLowerCase());
+        const sol = (t.solution || '').toLowerCase();
+        const res = (t.resolved || '').toLowerCase();
+        const stat = (t.status || '').toLowerCase();
+        if (sf === 'done') {
+          return res === 'done' || stat === 'done' || (sol.length > 0 && !sol.includes('transit') && !sol.includes('waiting'));
+        }
+        if (sf === 'delivered') return sol.includes('delivered') || stat.includes('delivered');
+        if (sf === 'claimed') return sol.includes('claimed') || sol.includes('pick-up') || stat.includes('claimed');
+        if (sf === 'transit') return sol.includes('for delivery') || sol.includes('waiting') || sol.includes('transit') || sol.includes('tracking');
+        if (sf === 'pending') return res === 'pending' || stat === 'pending';
+        return sol.includes(sf) || res.includes(sf) || stat.includes(sf);
       });
     }
 

@@ -122,49 +122,52 @@ export default function TicketTable({
   const getChannelBadge = (channel) => {
     if (!channel) return null;
     const ch = channel.toUpperCase();
-    let icon = <DeviceMobile size={12} weight="regular" />;
+    let label = channel;
     let badgeClass = 'channel-badge';
 
     if (ch.includes('VIBER')) {
       badgeClass += ' viber';
-      icon = <ChatText size={12} weight="regular" />;
+      label = 'Viber';
     } else if (ch.includes('EMAIL')) {
       badgeClass += ' email';
-      icon = <EnvelopeSimple size={12} weight="regular" />;
+      label = 'Email';
     } else if (ch.includes('HOTLINE') || ch.includes('LANDLINE') || ch.includes('TELEPHONE')) {
       badgeClass += ' hotline';
-      icon = <PhoneCall size={12} weight="regular" />;
+      label = ch.includes('HOTLINE') ? 'Hotline' : 'Landline';
     } else if (ch.includes('WALK')) {
-      icon = <Buildings size={12} weight="regular" />;
+      label = 'Walk-in';
     }
 
     return (
       <span className={badgeClass}>
-        {icon}
-        <span>{channel}</span>
+        <span>{label}</span>
       </span>
     );
   };
 
-  const getStatusChip = (ticket) => {
-    const status = ticket.solution || ticket.resolved || 'PENDING';
-    const sLower = status.toLowerCase();
+  const getNormalizedStatus = (ticket) => {
+    const raw = (ticket.status || '').toLowerCase();
+    const sol = (ticket.solution || '').toLowerCase();
+    const subj = (ticket.subject || ticket.concern || '').toLowerCase();
+    const res = (ticket.resolved || '').toLowerCase();
 
-    let chipClass = 'status-chip';
-    let icon = <Clock size={11} weight="bold" />;
-
-    if (sLower.includes('delivered') || sLower === 'done' || sLower === 'resolved') {
-      chipClass += ' delivered';
-      icon = <CheckCircle size={11} weight="bold" />;
-    } else if (sLower.includes('pick-up') || sLower.includes('claimed')) {
-      chipClass += ' pickup';
-      icon = <Package size={11} weight="bold" />;
-    } else if (sLower.includes('delivery') || sLower.includes('transit')) {
-      chipClass += ' transit';
-      icon = <Clock size={11} weight="bold" />;
-    } else {
-      chipClass += ' pending';
+    if (raw === 'delivered' || sol.includes('delivered')) {
+      return { label: 'Delivered', key: 'delivered' };
     }
+    if (raw.includes('pick-up') || raw.includes('claimed') || sol.includes('pick-up') || sol.includes('claimed') || subj.includes('pick-up')) {
+      return { label: 'Claimed', key: 'pickup' };
+    }
+    if (sol.includes('for delivery') || sol.includes('waiting') || sol.includes('transit') || sol.includes('tracking') || raw.includes('transit')) {
+      return { label: 'In Transit', key: 'transit' };
+    }
+    if (res === 'done' || raw === 'done' || (sol.length > 0 && !sol.includes('pending'))) {
+      return { label: 'Done', key: 'done' };
+    }
+    return { label: 'Pending', key: 'pending' };
+  };
+
+  const getStatusChip = (ticket) => {
+    const { label, key } = getNormalizedStatus(ticket);
 
     // Quick inline select for status
     if (editingCell?.ticketId === ticket.id && editingCell?.field === 'status_select') {
@@ -172,40 +175,36 @@ export default function TicketTable({
         <select
           autoFocus
           className="cell-inline-select"
-          value={ticket.solution || ticket.resolved || 'DONE'}
+          value={label}
           onChange={(e) => {
             const val = e.target.value;
             const updated = { 
               ...ticket, 
-              solution: val,
-              resolved: (val === 'Delivered' || val === 'DONE' || val === 'Claimed (Pick-up)') ? 'DONE' : 'PENDING'
+              status: val,
+              resolved: (val === 'Delivered' || val === 'Done' || val === 'Claimed') ? 'DONE' : 'PENDING'
             };
             onUpdateTicket && onUpdateTicket(updated);
             setEditingCell(null);
           }}
           onBlur={() => setEditingCell(null)}
         >
-          <option value="DONE">DONE</option>
+          <option value="Done">Done</option>
           <option value="Delivered">Delivered</option>
-          <option value="Claimed (Pick-up)">Claimed (Pick-up)</option>
-          <option value="For delivery">For delivery</option>
-          <option value="To send tracking no.">To send tracking no.</option>
-          <option value="PENDING">PENDING</option>
-          <option value="Transfer to Dept">Transfer to Dept</option>
+          <option value="Claimed">Claimed</option>
+          <option value="In Transit">In Transit</option>
+          <option value="Pending">Pending</option>
         </select>
       );
     }
 
     return (
       <span 
-        className={chipClass}
-        title="Click to quickly change status"
+        className={`status-pill status-${key}`}
+        title="Click to change status"
         onClick={() => setEditingCell({ ticketId: ticket.id, field: 'status_select' })}
-        style={{ cursor: 'pointer' }}
       >
-        {icon}
-        <span>{status}</span>
-        <PencilSimple size={10} style={{ marginLeft: '4px', opacity: 0.5 }} />
+        <span className="status-dot" />
+        <span>{label}</span>
       </span>
     );
   };
@@ -240,10 +239,7 @@ export default function TicketTable({
       <div className="table-header-bar">
         <div className="table-left-meta">
           <span className="table-count-label">
-            <strong>{tickets.length}</strong> rows in current view
-          </span>
-          <span className="sheets-hint">
-            • Click any cell to quick-edit (Google Sheets style)
+            <strong>{tickets.length}</strong> inquiries
           </span>
         </div>
 
@@ -252,10 +248,10 @@ export default function TicketTable({
             type="button"
             className={`btn-table-action ${isQuickAddOpen ? 'active' : ''}`}
             onClick={() => setIsQuickAddOpen(!isQuickAddOpen)}
-            title="Insert a new row directly into this sheet"
+            title="Add a new row"
           >
             <Plus size={14} weight="bold" />
-            <span>{isQuickAddOpen ? 'Cancel New Row' : '+ Add Row'}</span>
+            <span>{isQuickAddOpen ? 'Cancel' : 'Add Row'}</span>
           </button>
         </div>
       </div>
@@ -381,20 +377,20 @@ export default function TicketTable({
             <thead>
               <tr>
                 {visibleColumns.rowNo !== false && (
-                  <th style={{ width: '48px', textAlign: 'center' }}>#</th>
+                  <th style={{ width: '42px', textAlign: 'center' }}>#</th>
                 )}
                 {visibleColumns.ticketId !== false && renderSortHeader('ID', 'id', '85px')}
-                {visibleColumns.date !== false && renderSortHeader('Date', 'date', '95px')}
-                {visibleColumns.lawyer !== false && renderSortHeader('Lawyer / Member', 'name', '220px')}
-                {visibleColumns.chapter !== false && renderSortHeader('Chapter', 'chapter', '130px')}
-                {visibleColumns.channel !== false && renderSortHeader('Channel', 'channel', '110px')}
-                {visibleColumns.category !== false && renderSortHeader('Category', 'category', '110px')}
-                {visibleColumns.subject !== false && renderSortHeader('Concern / Subject', 'subject', '230px')}
-                {visibleColumns.solution !== false && renderSortHeader('Solution / Notes', 'solution', '230px')}
-                {visibleColumns.status !== false && renderSortHeader('Status', 'solution', '135px')}
-                {visibleColumns.trackingNo !== false && renderSortHeader('LBC Tracking', 'trackingNo', '155px')}
+                {visibleColumns.date !== false && renderSortHeader('Date', 'date', '90px')}
+                {visibleColumns.lawyer !== false && renderSortHeader('Lawyer', 'name', '200px')}
+                {visibleColumns.chapter !== false && renderSortHeader('Chapter', 'chapter', '125px')}
+                {visibleColumns.channel !== false && renderSortHeader('Channel', 'channel', '95px')}
+                {visibleColumns.category !== false && renderSortHeader('Category', 'category', '100px')}
+                {visibleColumns.subject !== false && renderSortHeader('Concern', 'subject', '220px')}
+                {visibleColumns.solution !== false && renderSortHeader('Resolution', 'solution', '220px')}
+                {visibleColumns.status !== false && renderSortHeader('Status', 'status', '110px')}
+                {visibleColumns.trackingNo !== false && renderSortHeader('Tracking #', 'trackingNo', '135px')}
                 {visibleColumns.actions !== false && (
-                  <th style={{ width: '85px', textAlign: 'right' }}>Actions</th>
+                  <th style={{ width: '75px', textAlign: 'right' }}>Actions</th>
                 )}
               </tr>
             </thead>
@@ -425,7 +421,7 @@ export default function TicketTable({
 
                     {/* Date */}
                     {visibleColumns.date !== false && (
-                      <td style={{ whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                      <td style={{ whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
                         {t.date || '—'}
                       </td>
                     )}
@@ -437,25 +433,22 @@ export default function TicketTable({
                           <span 
                             className="lawyer-name" 
                             onClick={() => onSelectAttorney && onSelectAttorney(t)}
-                            title="Click to view attorney profile & full inquiry history"
+                            title="View attorney profile"
                           >
-                            <User size={13} weight="regular" style={{ opacity: 0.6 }} />
                             {t.name || 'NOT SPECIFIED'}
                           </span>
-                          <div className="lawyer-meta">
-                            {t.rollNo && t.rollNo !== '-' && (
-                              <span 
-                                className="roll-tag"
-                                title="Click to copy roll number"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onCopyText && onCopyText(t.rollNo, `Roll #${t.rollNo} copied`);
-                                }}
-                              >
-                                Roll #{t.rollNo}
-                              </span>
-                            )}
-                          </div>
+                          {t.rollNo && t.rollNo !== '-' && (
+                            <span 
+                              className="roll-tag"
+                              title="Copy roll #"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onCopyText && onCopyText(t.rollNo, `Roll #${t.rollNo} copied`);
+                              }}
+                            >
+                              #{t.rollNo}
+                            </span>
+                          )}
                         </div>
                       </td>
                     )}
@@ -602,7 +595,7 @@ export default function TicketTable({
                             <input
                               autoFocus
                               type="text"
-                              placeholder="Enter LBC tracking #..."
+                              placeholder="Tracking #..."
                               value={editValue}
                               onChange={(e) => setEditValue(e.target.value)}
                               onKeyDown={(e) => {
@@ -624,38 +617,22 @@ export default function TicketTable({
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="tracking-link"
-                              title="Open official LBC Express tracking page"
+                              title="Track package"
                             >
                               <span>{t.trackingNo}</span>
-                              <ArrowSquareOut size={12} weight="regular" />
+                              <ArrowSquareOut size={11} weight="regular" />
                             </a>
                             <button
                               type="button"
                               className="copy-mini-btn"
-                              title="Copy tracking number"
-                              onClick={() => onCopyText && onCopyText(t.trackingNo, 'LBC Tracking # copied')}
+                              title="Copy tracking #"
+                              onClick={() => onCopyText && onCopyText(t.trackingNo, 'Tracking # copied')}
                             >
                               <Copy size={11} weight="regular" />
                             </button>
-                            <button
-                              type="button"
-                              className="copy-mini-btn"
-                              title="Edit tracking number"
-                              onClick={() => handleStartEdit(t, 'trackingNo', t.trackingNo)}
-                            >
-                              <PencilSimple size={11} weight="regular" />
-                            </button>
                           </div>
                         ) : (
-                          <div 
-                            className="editable-cell-content"
-                            onClick={() => handleStartEdit(t, 'trackingNo', '')}
-                            title="Click to add tracking number"
-                          >
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.74rem' }}>
-                              {isId ? '+ Add Tracking' : 'N/A'}
-                            </span>
-                          </div>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.74rem' }}>—</span>
                         )}
                       </td>
                     )}
